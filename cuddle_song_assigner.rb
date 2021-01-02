@@ -88,26 +88,15 @@ class Schedule
   end
 
   def assign_for person
-    song = person.unplayed_songs(@songs).sample
-    return false if song.nil?
-    person.already_played_songs << song
-    @songs.delete(song)
+    return false unless song = assign_song(person)
 
-    instrument = (person.unplayed_and_not_own_instruments(@instruments) || person.unplayed_instruments(@instruments) & song.unused_instruments(@instruments)).sample
-    return false if instrument.nil?
-    person.already_played_instruments << instrument
-    song.already_used_instruments << instrument unless song.nil?
-    @instruments.delete(instrument)
+    return false unless instrument = assign_instrument(person, song)
 
     assignments << OpenStruct.new(person: person, song: song, instrument: instrument)
     true
   end
 
-  def clear_assignments
-    @assignments = []
-  end
-
-  def print
+  def print_assignments
     puts "#{name}:\n\n"
     assignments.group_by { |assignment| assignment.person.name }.each do |person_name, assignments|
       name_char_length = person_name.length + 2
@@ -115,6 +104,23 @@ class Schedule
       puts "#{assignments[1].song&.name}, #{assignments[1].instrument&.name}".prepend(' ' * 13)
     end
     puts "\n"
+  end
+
+  private
+
+  def assign_song person
+    song = person.unplayed_songs(@songs).sample
+    return false if song.nil?
+    person.already_played_songs << song
+    @songs.delete(song)
+  end
+
+  def assign_instrument person, song
+    instrument = (person.unplayed_and_not_own_instruments(@instruments) || person.unplayed_instruments(@instruments) & song.unused_instruments(@instruments)).sample
+    return false if instrument.nil?
+    person.already_played_instruments << instrument
+    song.already_used_instruments << instrument
+    @instruments.delete(instrument)
   end
 end
 
@@ -132,7 +138,7 @@ end
 statuses = []
 schedules = []
 
-puts 'start'
+puts 'start assignments'
 
 until (
   statuses.length > 0 && statuses.flatten.all? { |result| result == true }
@@ -152,13 +158,6 @@ until (
   end
 end
 
-# schedules.each do |schedule|
-#   Person.all.shuffle.map do |person|
-#     schedule.assign_for person
-#     schedule.assign_for person
-#   end
-# end
-
-schedules.each(&:print)
+schedules.each(&:print_assignments)
 
 exit
