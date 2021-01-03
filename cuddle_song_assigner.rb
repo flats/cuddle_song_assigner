@@ -8,7 +8,7 @@ require 'pry'
 # 3. people should wait as long as possible to play their own instrument
 
 class Instrument
-  attr_accessor :name
+  attr_accessor :name, :person
   @@all = []
 
   def initialize name
@@ -19,6 +19,12 @@ class Instrument
   def self.all
     @@all
   end
+
+  def self.instruments_for person
+    self.all.select do |instrument|
+      instrument.person == person
+    end
+  end
 end
 
 class Person
@@ -27,6 +33,9 @@ class Person
 
   def initialize name, instruments
     @name = name
+    instruments.each do |inst|
+      inst.person = self
+    end
     @instruments = instruments
     @already_played_instruments = []
     @already_played_songs = []
@@ -85,6 +94,14 @@ class Song
   def unused_instruments available_instruments
     available_instruments - @already_used_instruments
   end
+
+  def unused_instruments_by_person available_instruments
+    all_used_people_instrumeents = @already_used_instruments.map do |inst|
+      Instrument.instruments_for(inst.person)
+    end.flatten
+
+    (available_instruments - all_used_people_instrumeents).shuffle
+  end
 end
 
 class Schedule
@@ -119,6 +136,7 @@ class Schedule
 
   def assign_song person
     song = person.unplayed_songs(Song.all_unassigned&.shuffle).sample
+
     return false if song.nil?
 
     person.already_played_songs << song
@@ -128,8 +146,14 @@ class Schedule
 
   def assign_instrument person, song
     unplayed_instruments = person.unplayed_and_not_own_instruments(@instruments) || person.unplayed_instruments(@instruments)
-    unused_instruments = song.unused_instruments(@instruments)
+    unused_instruments = song.unused_instruments_by_person(@instruments)
     instrument = (unused_instruments & unplayed_instruments).sample
+
+    if !instrument
+      unused_instruments = song.unused_instruments(@instruments)
+      instrument = (unused_instruments & unplayed_instruments).sample
+    end
+
     return false if instrument.nil?
 
     person.already_played_instruments << instrument
