@@ -55,17 +55,26 @@ class Person
 end
 
 class Song
-  attr_accessor :name, :already_used_instruments
+  attr_accessor :name, :already_used_instruments, :assigned
   @@all = []
 
   def initialize name
     @name = name
     @already_used_instruments = []
+    @assigned = false
     @@all << self
   end
 
   def self.all
     @@all
+  end
+
+  def self.all_unassigned
+    self.all.select { |song| song.assigned == false }
+  end
+
+  def self.clear_all_assigned
+    self.all.each { |song| song.assigned = false}
   end
 
   def clear_instruments
@@ -83,7 +92,6 @@ class Schedule
   def initialize name
     @assignments = []
     @name = name
-    @songs = Song.all.clone.shuffle
     @instruments = Instrument.all.clone.shuffle
   end
 
@@ -109,15 +117,18 @@ class Schedule
   private
 
   def assign_song person
-    song = person.unplayed_songs(@songs).sample
+    song = person.unplayed_songs(Song.all_unassigned&.shuffle).sample
     return false if song.nil?
 
     person.already_played_songs << song
-    @songs.delete(song)
+    song.assigned = true
+    song
   end
 
   def assign_instrument person, song
-    instrument = (person.unplayed_and_not_own_instruments(@instruments) || person.unplayed_instruments(@instruments) & song.unused_instruments(@instruments)).sample
+    unplayed_instruments = person.unplayed_and_not_own_instruments(@instruments) || person.unplayed_instruments(@instruments)
+    unused_instruments = song.unused_instruments(@instruments)
+    instrument = (unused_instruments & unplayed_instruments).sample
     return false if instrument.nil?
 
     person.already_played_instruments << instrument
