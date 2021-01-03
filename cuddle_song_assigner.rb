@@ -1,5 +1,5 @@
 require 'ostruct'
-require 'pry'
+# require 'pry'
 
 # constraints:
 
@@ -162,15 +162,15 @@ class Schedule
   end
 end
 
-Person.new 'Dave', [Instrument.new('percussion')]
-Person.new 'Ben', [Instrument.new('guitar')]
-Person.new 'Cole', [Instrument.new('trumpet'), Instrument.new('muted trumpet'), Instrument.new('op-1')].shuffle
-Person.new 'Christopher', [Instrument.new('pump organ'), Instrument.new('yamaha #1'), Instrument.new('yamaha #2')].shuffle
-Person.new 'Alec', [Instrument.new('bass clarinet'), Instrument.new('flute')].shuffle
-Person.new 'Kristen', [Instrument.new('270 #1'), Instrument.new('270 #2')].shuffle
+dave = Person.new 'Dave', [Instrument.new('percussion')]
+ben = Person.new 'Ben', [Instrument.new('guitar')]
+cole = Person.new 'Cole', [Instrument.new('trumpet'), Instrument.new('muted trumpet'), Instrument.new('op-1')].shuffle
+christopher = Person.new 'Christopher', [Instrument.new('pump organ'), Instrument.new('yamaha #1'), Instrument.new('yamaha #2')].shuffle
+alec = Person.new 'Alec', [Instrument.new('bass clarinet'), Instrument.new('flute')].shuffle
+kristin = Person.new 'Kristin', [Instrument.new('270 #1'), Instrument.new('270 #2')].shuffle
 
 keys = %w(a b-flat b c c-sharp d d-sharp e f f-sharp g a-flat)
-keys.map do |name|
+songs = keys.map do |name|
   Song.new name
 end
 
@@ -186,6 +186,13 @@ until (
   Person.all.each(&:clear_songs_and_instruments)
   statuses = []
   schedules = []
+
+  dave.already_played_songs = [songs[0], songs[2], songs[6], songs[8]]
+  kristin.already_played_songs = [songs[0], songs[6], songs[9], songs[11]]
+  christopher.already_played_songs = [songs[1], songs[4], songs[5], songs[10]]
+  ben.already_played_songs = [songs[1], songs[3], songs[5], songs[7]]
+  alec.already_played_songs = [songs[2], songs[4], songs[8], songs[10]]
+  cole.already_played_songs = [songs[3], songs[7], songs[9], songs[11]]
 
   ['Week 1', 'Week 2', 'Week 3', 'Week 4'].each do |week|
     schedule = Schedule.new(week)
