@@ -10,3 +10,5 @@ These instructions assume you're on a Mac.
 `cd Downloads/cuddle_song_assigner`
 4. Run the script by pasting in this line:
 `ruby cuddle_song_assigner.rb`
+
+This code is © 2021 David Flaherty.
