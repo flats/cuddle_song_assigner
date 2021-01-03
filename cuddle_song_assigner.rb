@@ -146,18 +146,20 @@ puts 'start assignments'
 until (
   statuses.length > 0 && statuses.flatten.all? { |result| result == true }
 )
-  statuses = []
-  schedules = [Schedule.new('Week 1'), Schedule.new('Week 2'), Schedule.new('Week 3'), Schedule.new('Week 4')]
-
-  Person.all.each(&:clear_songs_and_instruments)
   Song.all.each(&:clear_instruments)
+  Person.all.each(&:clear_songs_and_instruments)
+  statuses = []
+  schedules = []
 
-  schedules.each do |schedule|
+  ['Week 1', 'Week 2', 'Week 3', 'Week 4'].each do |week|
+    schedule = Schedule.new(week)
     statuses << Person.all.shuffle.map do |person|
       first_result = schedule.assign_for person
       second_result = schedule.assign_for person
       first_result && second_result
     end
+    schedules << schedule
+    Song.clear_all_assigned
   end
 end
 
